@@ -5,11 +5,23 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.Toast
 import com.google.android.material.textfield.TextInputEditText
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
     companion object {
         const val COLOR_KEY = "COLOR_KEY"
+        const val ERROR_KEY = "ERROR_KEY"
+    }
+    
+    private val startForResult = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { activityResult ->
+        val data = activityResult.data
+        val error = data?.getBooleanExtra(ERROR_KEY, false)
+        if (error == true) {
+            Toast.makeText(this, getString(R.string.color_code_input_invalid), Toast.LENGTH_LONG).show()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,9 +32,7 @@ class MainActivity : AppCompatActivity() {
 
         submitButton.setOnClickListener {
             val colorCode = findViewById<TextInputEditText>(R.id.color_code_input_field)
-                .text
-                .toString()
-                .trim()
+                .text.toString().trim()
 
             if (colorCode.isEmpty()) {
                 Toast.makeText(this, getString(R.string.color_code_input_empty), Toast.LENGTH_LONG).show()
@@ -34,10 +44,9 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Kirim ke ResultActivity
             val resultIntent = Intent(this, ResultActivity::class.java)
-            resultIntent.putExtra(COLOR_KEY, colorCode) // contoh: "ff0000"
-            startActivity(resultIntent)
+            resultIntent.putExtra(COLOR_KEY, colorCode)
+            startForResult.launch(resultIntent)
         }
     }
 }
